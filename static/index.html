@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Infinity Khmer ASR — បំលែងសំឡេងខ្មែរ</title>
+  <meta name="description" content="Infinity Khmer ASR — ប្រព័ន្ធទទួលស្គាល់សម្តីភាសាខ្មែរ" />
+
+  <!-- Google Fonts: Noto Serif Khmer -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Khmer:wght@300;400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- WaveSurfer.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/7.8.7/wavesurfer.min.js"></script>
+
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+
+<body>
+  <!-- ── Animated Background ── -->
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <div class="container">
+
+    <!-- ── Header ── -->
+    <header class="header">
+      <div class="logo-wrap">
+        <div class="logo-icon">
+          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="20" cy="20" r="18" stroke="url(#g1)" stroke-width="2"/>
+            <path d="M10 20 Q15 10 20 20 Q25 30 30 20" stroke="url(#g2)" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+            <defs>
+              <linearGradient id="g1" x1="0" y1="0" x2="40" y2="40">
+                <stop offset="0%" stop-color="#a78bfa"/>
+                <stop offset="100%" stop-color="#38bdf8"/>
+              </linearGradient>
+              <linearGradient id="g2" x1="0" y1="0" x2="40" y2="40">
+                <stop offset="0%" stop-color="#f59e0b"/>
+                <stop offset="100%" stop-color="#a78bfa"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div>
+          <h1 class="title">Infinity Khmer ASR</h1>
+          <p class="subtitle">ប្រព័ន្ធទទួលស្គាល់សម្ដីភាសាខ្មែរ</p>
+        </div>
+      </div>
+      <div class="badge">
+        <span class="dot" id="statusDot"></span>
+        <span id="statusText">កំពុងភ្ជាប់...</span>
+      </div>
+    </header>
+
+    <!-- ── Upload / Record Zone ── -->
+    <main class="main-card glass">
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab active" data-tab="upload" onclick="switchTab('upload', this)">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M10 3v10M6 7l4-4 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 17h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          Upload ឯកសារ
+        </button>
+        <button class="tab" data-tab="record" onclick="switchTab('record', this)">
+          <svg viewBox="0 0 20 20" fill="none"><rect x="7" y="3" width="6" height="10" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M4 11a6 6 0 0012 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="10" y1="17" x2="10" y2="20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          ថតសំឡេង
+        </button>
+      </div>
+
+      <!-- ── UPLOAD TAB ── -->
+      <div class="tab-panel" id="panel-upload">
+        <div class="dropzone glass-inner" id="dropzone"
+          ondragover="handleDragOver(event)"
+          ondragleave="handleDragLeave(event)"
+          ondrop="handleDrop(event)"
+          onclick="document.getElementById('fileInput').click()">
+          <div class="drop-icon">
+            <svg viewBox="0 0 64 64" fill="none">
+              <circle cx="32" cy="32" r="28" stroke="url(#dg)" stroke-width="2" stroke-dasharray="6 3"/>
+              <path d="M32 44V28M24 36l8-8 8 8" stroke="url(#dg2)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <defs>
+                <linearGradient id="dg" x1="4" y1="4" x2="60" y2="60">
+                  <stop offset="0%" stop-color="#a78bfa"/>
+                  <stop offset="100%" stop-color="#38bdf8"/>
+                </linearGradient>
+                <linearGradient id="dg2" x1="24" y1="28" x2="40" y2="44">
+                  <stop offset="0%" stop-color="#f59e0b"/>
+                  <stop offset="100%" stop-color="#a78bfa"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <p class="drop-title">ទម្លាក់ឯកសារសំឡេង ឬ ចុចដើម្បីជ្រើស</p>
+          <p class="drop-hint">WAV • MP3 • M4A • WEBM • OGG • FLAC (អតិបរមា 50MB)</p>
+          <input type="file" id="fileInput" accept=".wav,.mp3,.m4a,.webm,.ogg,.flac,.opus,.aac" hidden onchange="handleFileSelect(event)" />
+        </div>
+
+        <!-- Selected file info -->
+        <div class="file-info glass-inner" id="fileInfo" style="display:none">
+          <div class="file-meta">
+            <svg class="file-icon" viewBox="0 0 24 24" fill="none"><path d="M9 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V9l-6-6z" stroke="currentColor" stroke-width="1.8"/><path d="M9 3v6h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div>
+              <div class="file-name" id="fileName">—</div>
+              <div class="file-size" id="fileSize">—</div>
+            </div>
+          </div>
+          <button class="btn-remove" onclick="clearFile()" title="លុបចោល">✕</button>
+        </div>
+      </div>
+
+      <!-- ── RECORD TAB ── -->
+      <div class="tab-panel hidden" id="panel-record">
+        <div class="record-zone glass-inner">
+          <div class="rec-visualizer" id="recVisualizer">
+            <div class="rec-bars" id="recBars">
+              <!-- bars injected by JS -->
+            </div>
+          </div>
+          <div class="rec-timer" id="recTimer">00:00</div>
+          <div class="rec-controls">
+            <button class="btn-rec" id="btnRecord" onclick="toggleRecord()">
+              <span class="rec-ring"></span>
+              <svg viewBox="0 0 24 24" fill="none"><rect x="7" y="4" width="10" height="14" rx="5" fill="currentColor"/></svg>
+            </button>
+            <button class="btn-rec-stop" id="btnStop" onclick="stopRecord()" style="display:none">
+              <svg viewBox="0 0 24 24" fill="none"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/></svg>
+            </button>
+          </div>
+          <p class="rec-hint" id="recHint">ចុចប៊ូតុងក្រហម ដើម្បីចាប់ផ្ដើមថត</p>
+        </div>
+      </div>
+
+      <!-- ── Waveform ── -->
+      <div class="waveform-wrap glass-inner" id="waveformWrap" style="display:none">
+        <div id="waveform"></div>
+        <div class="wave-controls">
+          <button class="btn-wave" onclick="togglePlay()" id="btnPlay">
+            <svg id="iconPlay" viewBox="0 0 24 24" fill="none"><polygon points="6,4 20,12 6,20" fill="currentColor"/></svg>
+            <svg id="iconPause" viewBox="0 0 24 24" fill="none" style="display:none"><rect x="6" y="4" width="4" height="16" fill="currentColor"/><rect x="14" y="4" width="4" height="16" fill="currentColor"/></svg>
+          </button>
+          <div class="wave-time">
+            <span id="waveCurrent">0:00</span> / <span id="waveDuration">0:00</span>
+          </div>
+          <div class="volume-wrap">
+            <svg viewBox="0 0 20 20" fill="none"><path d="M3 8h3l4-4v12l-4-4H3V8z" fill="currentColor"/><path d="M14.5 7a4 4 0 010 6M17 4.5a7.5 7.5 0 010 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="1" oninput="setVolume(this.value)" />
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Transcribe Button ── -->
+      <button class="btn-transcribe" id="btnTranscribe" onclick="runTranscribe()" disabled>
+        <span id="btnLabel">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 3a9 9 0 100 18A9 9 0 0012 3z" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v4l3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          បំលែងជាអក្សរ
+        </span>
+        <span id="btnLoading" style="display:none">
+          <span class="spinner"></span> កំពុងវិភាគ...
+        </span>
+      </button>
+
+    </main>
+
+    <!-- ── Result Panel ── -->
+    <section class="result-card glass" id="resultPanel" style="display:none">
+
+      <div class="result-header">
+        <h2>លទ្ធផល</h2>
+        <div class="result-meta" id="resultMeta"></div>
+      </div>
+
+      <!-- Transcript -->
+      <div class="result-block">
+        <div class="result-label">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M4 6h12M4 10h8M4 14h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          អត្ថបទខ្មែរ (ASR)
+        </div>
+        <div class="result-text glass-inner" id="transcriptText">—</div>
+        <div class="result-actions">
+          <button class="btn-action" onclick="copyText('transcriptText')">
+            <svg viewBox="0 0 20 20" fill="none"><rect x="6" y="4" width="10" height="12" rx="2" stroke="currentColor" stroke-width="1.6"/><rect x="4" y="2" width="10" height="12" rx="2" stroke="currentColor" stroke-width="1.6"/></svg>
+            Copy
+          </button>
+          <button class="btn-action" onclick="downloadTxt('transcriptText', 'khmer-asr-transcript.txt')">
+            <svg viewBox="0 0 20 20" fill="none"><path d="M10 3v10M6 9l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M4 17h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            TXT
+          </button>
+        </div>
+      </div>
+
+      <!-- Inverse Text -->
+      <div class="result-block">
+        <div class="result-label">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M10 2l2 6h6l-5 4 2 6-5-4-5 4 2-6-5-4h6z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          Inverse Text (លេខ / រូបិយប័ណ្ណ)
+        </div>
+        <div class="result-text glass-inner" id="inverseText">—</div>
+        <div class="result-actions">
+          <button class="btn-action" onclick="copyText('inverseText')">
+            <svg viewBox="0 0 20 20" fill="none"><rect x="6" y="4" width="10" height="12" rx="2" stroke="currentColor" stroke-width="1.6"/><rect x="4" y="2" width="10" height="12" rx="2" stroke="currentColor" stroke-width="1.6"/></svg>
+            Copy
+          </button>
+          <button class="btn-action" onclick="downloadTxt('inverseText', 'khmer-asr-inverse.txt')">
+            <svg viewBox="0 0 20 20" fill="none"><path d="M10 3v10M6 9l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M4 17h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            TXT
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ── Error Toast ── -->
+    <div class="toast" id="toast"></div>
+
+    <!-- ── Footer ── -->
+    <footer class="footer">
+      Powered by <strong>Infinity Khmer ASR</strong> — SoyVitou/infinity-khmer-asr &nbsp;·&nbsp; Amertak Network
+    </footer>
+
+  </div><!-- /container -->
+
+  <script src="/static/script.js"></script>
+</body>
+</html>
