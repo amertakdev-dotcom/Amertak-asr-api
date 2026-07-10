@@ -1,7 +1,9 @@
 import fs from 'fs';
 import path from 'path';
-import { WaveFile } from 'wavefile';
+import wavefileModule from 'wavefile';
 import ffmpeg from 'fluent-ffmpeg';
+
+const { WaveFile } = wavefileModule;
 
 /**
  * Convert any audio to 16kHz mono WAV (required by Whisper/ASR)
