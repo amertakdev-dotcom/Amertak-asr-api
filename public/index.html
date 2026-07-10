@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Khmer ASR</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Khmer:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    h1 { text-align: center; color: #1a1a2e; margin-bottom: 8px; }
+    .subtitle {
+      font-family: 'Noto Sans Khmer', 'Khmer OS', sans-serif;
+      text-align: center;
+      color: #e94560;
+      font-size: 1.2rem;
+      margin-bottom: 30px;
+    }
+    .drop-zone {
+      border: 3px dashed #667eea;
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      margin: 20px 0;
+      transition: all 0.3s;
+      cursor: pointer;
+      background: #fafbff;
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      background: #f0f4ff;
+      border-color: #e94560;
+    }
+    .drop-zone input { display: none; }
+    .drop-zone p { color: #444; margin: 5px 0; }
+    .backend-select { margin-bottom: 20px; }
+    .backend-select label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #333;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .backend-select select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      font-size: 16px;
+      background: #fafbff;
+    }
+    .btn {
+      background: #e94560;
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      width: 100%;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: #c73651; }
+    .btn:disabled { background: #ccc; cursor: not-allowed; }
+    .result {
+      margin-top: 25px;
+      padding: 25px;
+      background: #f8f9fa;
+      border-radius: 12px;
+      display: none;
+      border-left: 4px solid #e94560;
+    }
+    .result.show { display: block; }
+    .result-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: #888;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .result-text {
+      font-family: 'Noto Sans Khmer', 'Khmer OS', sans-serif;
+      font-size: 1.4rem;
+      color: #1a1a2e;
+      line-height: 1.6;
+    }
+    .meta { color: #666; font-size: 0.85rem; margin-top: 15px; display: flex; gap: 15px; }
+    .meta span { background: #eee; padding: 4px 10px; border-radius: 20px; }
+    .error { color: #e94560; margin-top: 15px; font-weight: 500; }
+    .spinner { display: none; text-align: center; margin-top: 20px; }
+    .spinner.show { display: block; }
+    .loading {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #e94560;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .footer {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 0.8rem;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎙️ Khmer ASR</h1>
+    <p class="subtitle">កម្មវិធីចងក្រងអត្ថបទពីសំឡេងភាសាខ្មែរ</p>
+
+    <div class="backend-select">
+      <label>Backend / ប្រព័ន្ធខាងក្រោយ</label>
+      <select id="backend">
+        <option value="hf-api">☁️ Hugging Face API (Cloud)</option>
+        <option value="transformers">💻 Local Transformers</option>
+      </select>
+    </div>
+
+    <div class="drop-zone" id="dropZone">
+      <input type="file" id="fileInput" accept="audio/*">
+      <p>📁 ចុចឬទម្លាក់ឯកសារសំឡេងទីនេះ</p>
+      <p style="font-size:0.85rem; color:#888;">Click or drop audio file here</p>
+    </div>
+
+    <button class="btn" id="transcribeBtn" disabled>Start Transcription</button>
+
+    <div class="spinner" id="spinner">
+      <div class="loading"></div>
+      <p style="margin-top:12px; color:#666;">Processing... កំពុងដំណើរការ</p>
+    </div>
+
+    <div class="result" id="result">
+      <div class="result-label">Transcription / អត្ថបទ</div>
+      <div class="result-text" id="resultText"></div>
+      <div class="meta" id="meta"></div>
+    </div>
+
+    <div class="error" id="error"></div>
+
+    <div class="footer">
+      Deployed on Render • Node.js + Hugging Face
+    </div>
+  </div>
+
+  <script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const btn = document.getElementById('transcribeBtn');
+    const result = document.getElementById('result');
+    const resultText = document.getElementById('resultText');
+    const meta = document.getElementById('meta');
+    const spinner = document.getElementById('spinner');
+    const error = document.getElementById('error');
+    const backend = document.getElementById('backend');
+
+    let selectedFile = null;
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', (e) => { if (e.target.files.length) handleFile(e.target.files[0]); });
+
+    function handleFile(file) {
+      selectedFile = file;
+      dropZone.innerHTML = '<p style="font-weight:600;">' + file.name + '</p><p style="font-size:0.85rem;color:#888;">' + (file.size/1024).toFixed(1) + ' KB</p>';
+      btn.disabled = false;
+      error.textContent = '';
+      result.classList.remove('show');
+    }
+
+    btn.addEventListener('click', async () => {
+      if (!selectedFile) return;
+      spinner.classList.add('show');
+      btn.disabled = true;
+      result.classList.remove('show');
+      error.textContent = '';
+
+      const formData = new FormData();
+      formData.append('audio', selectedFile);
+      formData.append('backend', backend.value);
+
+      try {
+        const res = await fetch('/transcribe', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Transcription failed');
+
+        resultText.textContent = data.text || 'No text returned';
+        meta.innerHTML = '<span>Backend: ' + data.backend + '</span><span>Duration: ' + data.duration + '</span>';
+        result.classList.add('show');
+      } catch (err) {
+        error.textContent = '❌ Error: ' + err.message;
+      } finally {
+        spinner.classList.remove('show');
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
